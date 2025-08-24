@@ -1,55 +1,68 @@
+// src/lib/stores/recipes.ts
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
-export interface Ingredient {
+export type Ingredient = {
   id: number;
   name: string;
-}
+};
 
-export interface Recipe {
+export type Recipe = {
   id: number;
   title: string;
   ingredients: Ingredient[];
+};
+
+// ✅ Initialize safely (empty array on server, load from localStorage on client)
+const initialRecipes: Recipe[] = browser
+  ? JSON.parse(localStorage.getItem('recipes') ?? '[]')
+  : [];
+
+export const recipes = writable<Recipe[]>(initialRecipes);
+
+let recipeId = browser ? initialRecipes.length : 0;
+let ingredientId = 0;
+
+// ✅ Subscribe only on client
+if (browser) {
+  recipes.subscribe((value) => {
+    localStorage.setItem('recipes', JSON.stringify(value));
+  });
 }
 
-export const recipes = writable<Recipe[]>([]);
-
-// Add a recipe
 export function addRecipe(title: string) {
-  recipes.update(r => [...r, { id: Date.now(), title, ingredients: [] }]);
+  recipes.update((items) => [
+    ...items,
+    { id: ++recipeId, title, ingredients: [] }
+  ]);
 }
 
-// Remove a recipe
 export function removeRecipe(id: number) {
-  recipes.update(r => r.filter(recipe => recipe.id !== id));
+  recipes.update((items) => items.filter((r) => r.id !== id));
 }
 
-// Add ingredient to a recipe
-export function addIngredient(recipeId: number, ingredientName: string) {
-  recipes.update(r =>
-    r.map(recipe =>
-      recipe.id === recipeId
+export function addIngredient(recipeId: number, name: string) {
+  recipes.update((items) =>
+    items.map((r) =>
+      r.id === recipeId
         ? {
-            ...recipe,
-            ingredients: [
-              ...recipe.ingredients,
-              { id: Date.now(), name: ingredientName }
-            ]
+            ...r,
+            ingredients: [...r.ingredients, { id: ++ingredientId, name }]
           }
-        : recipe
+        : r
     )
   );
 }
 
-// Remove ingredient
 export function removeIngredient(recipeId: number, ingredientId: number) {
-  recipes.update(r =>
-    r.map(recipe =>
-      recipe.id === recipeId
+  recipes.update((items) =>
+    items.map((r) =>
+      r.id === recipeId
         ? {
-            ...recipe,
-            ingredients: recipe.ingredients.filter(i => i.id !== ingredientId)
+            ...r,
+            ingredients: r.ingredients.filter((ing) => ing.id !== ingredientId)
           }
-        : recipe
+        : r
     )
   );
 }
