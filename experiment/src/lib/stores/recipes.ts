@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 export interface Ingredient {
   id: number;
   name: string;
+  completed: boolean;
 }
 
 export interface Recipe {
@@ -11,58 +12,68 @@ export interface Recipe {
   ingredients: Ingredient[];
 }
 
-function createRecipes() {
+function createRecipesStore() {
   const { subscribe, update } = writable<Recipe[]>([]);
+  let recipeId = 1;
+  let ingredientId = 1;
 
   return {
     subscribe,
 
-    addRecipe: (title: string) => {
-      update((recipes) => [
+    addRecipe: (title: string) =>
+      update(recipes => [
         ...recipes,
-        {
-          id: Date.now(),
-          title,
-          ingredients: [],
-        },
-      ]);
-    },
+        { id: recipeId++, title, ingredients: [] }
+      ]),
 
-    removeRecipe: (id: number) => {
-      update((recipes) => recipes.filter((r) => r.id !== id));
-    },
+    removeRecipe: (id: number) =>
+      update(recipes => recipes.filter(r => r.id !== id)),
 
-    addIngredient: (recipeId: number, name: string) => {
-      update((recipes) =>
-        recipes.map((r) =>
-          r.id === recipeId
+    addIngredient: (recipeId: number, name: string) =>
+      update(recipes =>
+        recipes.map(recipe =>
+          recipe.id === recipeId
             ? {
-                ...r,
+                ...recipe,
                 ingredients: [
-                  ...r.ingredients,
-                  { id: Date.now(), name },
-                ],
+                  ...recipe.ingredients,
+                  { id: ingredientId++, name, completed: false }
+                ]
               }
-            : r
+            : recipe
         )
-      );
-    },
+      ),
 
-    removeIngredient: (recipeId: number, ingredientId: number) => {
-      update((recipes) =>
-        recipes.map((r) =>
-          r.id === recipeId
+    removeIngredient: (recipeId: number, ingredientId: number) =>
+      update(recipes =>
+        recipes.map(recipe =>
+          recipe.id === recipeId
             ? {
-                ...r,
-                ingredients: r.ingredients.filter(
-                  (i) => i.id !== ingredientId
-                ),
+                ...recipe,
+                ingredients: recipe.ingredients.filter(
+                  i => i.id !== ingredientId
+                )
               }
-            : r
+            : recipe
         )
-      );
-    },
+      ),
+
+    toggleIngredient: (recipeId: number, ingredientId: number) =>
+      update(recipes =>
+        recipes.map(recipe =>
+          recipe.id === recipeId
+            ? {
+                ...recipe,
+                ingredients: recipe.ingredients.map(i =>
+                  i.id === ingredientId
+                    ? { ...i, completed: !i.completed }
+                    : i
+                )
+              }
+            : recipe
+        )
+      )
   };
 }
 
-export const recipes = createRecipes();
+export const recipes = createRecipesStore();
