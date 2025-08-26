@@ -1,73 +1,67 @@
+// src/lib/stores/recipes.ts
 import { writable } from 'svelte/store';
 
-export interface Ingredient {
+export type Ingredient = {
   id: number;
   name: string;
-  completed: boolean;
-}
+  checked: boolean;
+};
 
-export interface Recipe {
+export type Recipe = {
   id: number;
   title: string;
   ingredients: Ingredient[];
-}
+};
 
-function createRecipesStore() {
+function createRecipes() {
   const { subscribe, update } = writable<Recipe[]>([]);
-  let recipeId = 1;
-  let ingredientId = 1;
 
   return {
     subscribe,
-
     addRecipe: (title: string) =>
-      update(recipes => [
+      update((recipes) => [
         ...recipes,
-        { id: recipeId++, title, ingredients: [] }
+        { id: Date.now(), title, ingredients: [] }
       ]),
-
     removeRecipe: (id: number) =>
-      update(recipes => recipes.filter(r => r.id !== id)),
-
+      update((recipes) => recipes.filter((recipe) => recipe.id !== id)),
     addIngredient: (recipeId: number, name: string) =>
-      update(recipes =>
-        recipes.map(recipe =>
+      update((recipes) =>
+        recipes.map((recipe) =>
           recipe.id === recipeId
             ? {
                 ...recipe,
                 ingredients: [
                   ...recipe.ingredients,
-                  { id: ingredientId++, name, completed: false }
+                  { id: Date.now(), name, checked: false }
                 ]
               }
             : recipe
         )
       ),
-
     removeIngredient: (recipeId: number, ingredientId: number) =>
-      update(recipes =>
-        recipes.map(recipe =>
+      update((recipes) =>
+        recipes.map((recipe) =>
           recipe.id === recipeId
             ? {
                 ...recipe,
                 ingredients: recipe.ingredients.filter(
-                  i => i.id !== ingredientId
+                  (ingredient) => ingredient.id !== ingredientId
                 )
               }
             : recipe
         )
       ),
-
     toggleIngredient: (recipeId: number, ingredientId: number) =>
-      update(recipes =>
-        recipes.map(recipe =>
+      update((recipes) =>
+        recipes.map((recipe) =>
           recipe.id === recipeId
             ? {
                 ...recipe,
-                ingredients: recipe.ingredients.map(i =>
-                  i.id === ingredientId
-                    ? { ...i, completed: !i.completed }
-                    : i
+                ingredients: recipe.ingredients.map((ingredient) =>
+                  ingredient.id === ingredientId
+                    ? { ...ingredient, checked: !ingredient.checked }
+                    : ingredient
                 )
               }
             : recipe
@@ -76,4 +70,4 @@ function createRecipesStore() {
   };
 }
 
-export const recipes = createRecipesStore();
+export const recipes = createRecipes();
