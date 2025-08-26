@@ -1,20 +1,29 @@
-// src/lib/stores/recipes.ts
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
-export type Ingredient = {
+export interface Ingredient {
   id: number;
   name: string;
-  checked: boolean;
-};
+  done: boolean;
+}
 
-export type Recipe = {
+export interface Recipe {
   id: number;
   title: string;
   ingredients: Ingredient[];
-};
+}
 
-function createRecipes() {
-  const { subscribe, update } = writable<Recipe[]>([]);
+function createRecipesStore() {
+  const stored = browser ? localStorage.getItem('recipes') : null;
+  const initial = stored ? JSON.parse(stored) : [];
+
+  const { subscribe, set, update } = writable<Recipe[]>(initial);
+
+  if (browser) {
+    subscribe((value) => {
+      localStorage.setItem('recipes', JSON.stringify(value));
+    });
+  }
 
   return {
     subscribe,
@@ -24,7 +33,7 @@ function createRecipes() {
         { id: Date.now(), title, ingredients: [] }
       ]),
     removeRecipe: (id: number) =>
-      update((recipes) => recipes.filter((recipe) => recipe.id !== id)),
+      update((recipes) => recipes.filter((r) => r.id !== id)),
     addIngredient: (recipeId: number, name: string) =>
       update((recipes) =>
         recipes.map((recipe) =>
@@ -33,7 +42,7 @@ function createRecipes() {
                 ...recipe,
                 ingredients: [
                   ...recipe.ingredients,
-                  { id: Date.now(), name, checked: false }
+                  { id: Date.now(), name, done: false }
                 ]
               }
             : recipe
@@ -46,7 +55,7 @@ function createRecipes() {
             ? {
                 ...recipe,
                 ingredients: recipe.ingredients.filter(
-                  (ingredient) => ingredient.id !== ingredientId
+                  (ing) => ing.id !== ingredientId
                 )
               }
             : recipe
@@ -58,16 +67,20 @@ function createRecipes() {
           recipe.id === recipeId
             ? {
                 ...recipe,
-                ingredients: recipe.ingredients.map((ingredient) =>
-                  ingredient.id === ingredientId
-                    ? { ...ingredient, checked: !ingredient.checked }
-                    : ingredient
+                ingredients: recipe.ingredients.map((ing) =>
+                  ing.id === ingredientId ? { ...ing, done: !ing.done } : ing
                 )
               }
             : recipe
         )
-      )
+      ),
+    clearRecipes: () => {
+      set([]);
+      if (browser) {
+        localStorage.removeItem('recipes'); // ✅ remove the key completely
+      }
+    }
   };
 }
 
-export const recipes = createRecipes();
+export const recipes = createRecipesStore();
