@@ -1,86 +1,76 @@
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
 
-export interface Ingredient {
+export type Ingredient = {
   id: number;
   name: string;
-  done: boolean;
-}
+  checked: boolean;
+};
 
-export interface Recipe {
+export type Recipe = {
   id: number;
   title: string;
   ingredients: Ingredient[];
-}
+};
 
-function createRecipesStore() {
-  const stored = browser ? localStorage.getItem('recipes') : null;
-  const initial = stored ? JSON.parse(stored) : [];
+// Simple id helper to avoid duplicate keys
+const newId = () => Date.now() + Math.floor(Math.random() * 1_000_000);
 
-  const { subscribe, set, update } = writable<Recipe[]>(initial);
-
-  if (browser) {
-    subscribe((value) => {
-      localStorage.setItem('recipes', JSON.stringify(value));
-    });
-  }
+function createRecipes() {
+  const { subscribe, update } = writable<Recipe[]>([]);
 
   return {
     subscribe,
+
     addRecipe: (title: string) =>
       update((recipes) => [
         ...recipes,
-        { id: Date.now(), title, ingredients: [] }
+        { id: newId(), title, ingredients: [] }
       ]),
+
     removeRecipe: (id: number) =>
       update((recipes) => recipes.filter((r) => r.id !== id)),
+
     addIngredient: (recipeId: number, name: string) =>
       update((recipes) =>
-        recipes.map((recipe) =>
-          recipe.id === recipeId
+        recipes.map((r) =>
+          r.id === recipeId
             ? {
-                ...recipe,
+                ...r,
                 ingredients: [
-                  ...recipe.ingredients,
-                  { id: Date.now(), name, done: false }
+                  ...r.ingredients,
+                  { id: newId(), name, checked: false }
                 ]
               }
-            : recipe
+            : r
         )
       ),
+
     removeIngredient: (recipeId: number, ingredientId: number) =>
       update((recipes) =>
-        recipes.map((recipe) =>
-          recipe.id === recipeId
+        recipes.map((r) =>
+          r.id === recipeId
             ? {
-                ...recipe,
-                ingredients: recipe.ingredients.filter(
-                  (ing) => ing.id !== ingredientId
-                )
+                ...r,
+                ingredients: r.ingredients.filter((i) => i.id !== ingredientId)
               }
-            : recipe
+            : r
         )
       ),
+
     toggleIngredient: (recipeId: number, ingredientId: number) =>
       update((recipes) =>
-        recipes.map((recipe) =>
-          recipe.id === recipeId
+        recipes.map((r) =>
+          r.id === recipeId
             ? {
-                ...recipe,
-                ingredients: recipe.ingredients.map((ing) =>
-                  ing.id === ingredientId ? { ...ing, done: !ing.done } : ing
+                ...r,
+                ingredients: r.ingredients.map((i) =>
+                  i.id === ingredientId ? { ...i, checked: !i.checked } : i
                 )
               }
-            : recipe
+            : r
         )
-      ),
-    clearRecipes: () => {
-      set([]);
-      if (browser) {
-        localStorage.removeItem('recipes'); // ✅ remove the key completely
-      }
-    }
+      )
   };
 }
 
-export const recipes = createRecipesStore();
+export const recipes = createRecipes();
