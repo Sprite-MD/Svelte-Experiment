@@ -15,8 +15,27 @@ export type Recipe = {
 // Simple id helper to avoid duplicate keys
 const newId = () => Date.now() + Math.floor(Math.random() * 1_000_000);
 
+// Load saved recipes from localStorage
+function loadFromStorage(): Recipe[] {
+  if (typeof localStorage === 'undefined') return [];
+  try {
+    const data = localStorage.getItem('recipes');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error('Error loading recipes from localStorage', e);
+    return [];
+  }
+}
+
 function createRecipes() {
-  const { subscribe, update } = writable<Recipe[]>([]);
+  const { subscribe, update, set } = writable<Recipe[]>(loadFromStorage());
+
+  // Save to localStorage whenever recipes change
+  subscribe((recipes) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('recipes', JSON.stringify(recipes));
+    }
+  });
 
   return {
     subscribe,
@@ -69,7 +88,9 @@ function createRecipes() {
               }
             : r
         )
-      )
+      ),
+
+    clearAll: () => set([]) // clears all recipes
   };
 }
 

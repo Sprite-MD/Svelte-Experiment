@@ -6,7 +6,21 @@
 </script>
 
 <main class="max-w-6xl mx-auto mt-10 p-6 bg-gray-50 min-h-screen font-sans">
-  <h1 class="text-center text-3xl font-bold mb-6 text-gray-800">🍴 Recipe Cards</h1>
+  <!-- Header with Clear All button -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">🍴 Recipe Cards</h1>
+    <button
+      type="button"
+      on:click={() => recipes.clearAll()}
+      disabled={$recipes.length === 0}
+      class="px-4 py-2 rounded-md transition text-sm sm:text-base
+        {$recipes.length === 0 
+          ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
+          : 'bg-red-500 text-white hover:bg-red-600'}"
+    >
+      Clear All
+    </button>
+  </div>
 
   <!-- Add Recipe Form -->
   <form
