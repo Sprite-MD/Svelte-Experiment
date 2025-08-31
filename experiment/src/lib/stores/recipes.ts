@@ -9,45 +9,28 @@ export type Ingredient = {
 export type Recipe = {
   id: number;
   title: string;
+  category: string;
   ingredients: Ingredient[];
 };
 
-// Simple id helper to avoid duplicate keys
 const newId = () => Date.now() + Math.floor(Math.random() * 1_000_000);
 
-// Load saved recipes from localStorage
-function loadFromStorage(): Recipe[] {
-  if (typeof localStorage === 'undefined') return [];
-  try {
-    const data = localStorage.getItem('recipes');
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error('Error loading recipes from localStorage', e);
-    return [];
-  }
-}
-
 function createRecipes() {
-  const { subscribe, update, set } = writable<Recipe[]>(loadFromStorage());
-
-  // Save to localStorage whenever recipes change
-  subscribe((recipes) => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('recipes', JSON.stringify(recipes));
-    }
-  });
+  const { subscribe, update, set } = writable<Recipe[]>([]);
 
   return {
     subscribe,
 
-    addRecipe: (title: string) =>
+    addRecipe: (title: string, category: string = '') =>
       update((recipes) => [
         ...recipes,
-        { id: newId(), title, ingredients: [] }
+        { id: newId(), title, category, ingredients: [] }
       ]),
 
     removeRecipe: (id: number) =>
       update((recipes) => recipes.filter((r) => r.id !== id)),
+
+    clearAll: () => set([]),
 
     addIngredient: (recipeId: number, name: string) =>
       update((recipes) =>
@@ -88,9 +71,7 @@ function createRecipes() {
               }
             : r
         )
-      ),
-
-    clearAll: () => set([]) // clears all recipes
+      )
   };
 }
 
