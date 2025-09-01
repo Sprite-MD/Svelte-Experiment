@@ -96,8 +96,7 @@
           >
             <option value="">Uncategorized</option>
             <option>Dessert</option>
-            <option>Beef</option>
-            <option>Fish</option>
+            <option>Breakfast</option>
             <option>Lunch</option>
             <option>Dinner</option>
             <option>Vegetarian</option>
