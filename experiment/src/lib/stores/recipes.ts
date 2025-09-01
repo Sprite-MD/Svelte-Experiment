@@ -23,10 +23,10 @@ export const CATEGORIES = [
 
 const STORAGE_KEY = 'recipes';
 
-// ✅ Robust unique ID
+// unique ID
 const newId = () => crypto.randomUUID();
 
-// ✅ Initialize from localStorage safely
+// Initialize from localStorage safely
 function loadInitial(): Recipe[] {
   if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -45,7 +45,7 @@ function loadInitial(): Recipe[] {
 function createRecipes() {
   const { subscribe, set, update } = writable<Recipe[]>(loadInitial());
 
-  // ✅ Persist changes to localStorage
+  // Persist changes to localStorage
   subscribe((recipes) => {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
