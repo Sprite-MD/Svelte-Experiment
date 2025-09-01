@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { recipes } from '$lib/stores/recipes';
+  import { recipes, CATEGORIES } from '$lib/stores/recipes';
 
   let newRecipe = '';
-  let newIngredient: Record<number, string> = {};
-  let newCategory: Record<number, string> = {};
+  let newIngredient: Record<string, string> = {};
   let activeCategory = '';
 </script>
 
@@ -56,11 +55,9 @@
       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
     >
       <option value="">All</option>
-      <option>Dessert</option>
-      <option>Breakfast</option>
-      <option>Lunch</option>
-      <option>Dinner</option>
-      <option>Vegetarian</option>
+      {#each CATEGORIES as cat}
+        <option value={cat}>{cat}</option>
+      {/each}
     </select>
   </div>
 
@@ -95,11 +92,9 @@
             class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="">Uncategorized</option>
-            <option>Dessert</option>
-            <option>Breakfast</option>
-            <option>Lunch</option>
-            <option>Dinner</option>
-            <option>Vegetarian</option>
+            {#each CATEGORIES as cat}
+              <option value={cat}>{cat}</option>
+            {/each}
           </select>
         </div>
 

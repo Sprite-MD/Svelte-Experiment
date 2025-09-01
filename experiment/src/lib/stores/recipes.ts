@@ -1,83 +1,98 @@
 import { writable } from 'svelte/store';
-import { dev } from '$app/environment';
 
 export type Ingredient = {
-  id: number;
+  id: string;
   name: string;
   checked: boolean;
 };
 
 export type Recipe = {
-  id: number;
+  id: string;
   title: string;
   category: string;
   ingredients: Ingredient[];
 };
 
+export const CATEGORIES = [
+  "Dessert",
+  "Breakfast",
+  "Lunch",
+  "Dinner",
+  "Vegetarian"
+];
+
 const STORAGE_KEY = 'recipes';
 
-// id helper
-const newId = () => Date.now() + Math.floor(Math.random() * 1_000_000);
+// ✅ Robust unique ID
+const newId = () => crypto.randomUUID();
 
-function createRecipes() {
-  const { subscribe, set, update } = writable<Recipe[]>([]);
-
-  // ✅ Load initial data
-  async function init() {
-    if (dev) {
-      // Load from dev seed JSON
-      try {
-        const res = await fetch('/recipes-dev.json');
-        const data: Recipe[] = await res.json();
-        set(data);
-        console.log('✅ Loaded recipes from recipes-dev.json (dev mode)');
-        return;
-      } catch (e) {
-        console.warn('⚠️ Could not load recipes-dev.json, falling back to localStorage');
-      }
-    }
-
-    // Fallback: load from localStorage
+// ✅ Initialize from localStorage safely
+function loadInitial(): Recipe[] {
+  if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      set(JSON.parse(stored));
+      try {
+        return JSON.parse(stored) as Recipe[];
+      } catch (err) {
+        console.warn("⚠️ Could not parse recipes from localStorage, resetting...");
+        return [];
+      }
     }
   }
+  return [];
+}
 
-  // ✅ Save to localStorage on updates (only in browser + not dev mode)
+function createRecipes() {
+  const { subscribe, set, update } = writable<Recipe[]>(loadInitial());
+
+  // ✅ Persist changes to localStorage
   subscribe((recipes) => {
-    if (typeof window !== 'undefined' && !dev) {
+    if (typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
     }
   });
 
   return {
     subscribe,
-    init,
-    addRecipe: (title: string, category: string) =>
+    addRecipe: (title: string, category: string = '') =>
       update((recipes) => [
         ...recipes,
         { id: newId(), title, category, ingredients: [] }
       ]),
-    removeRecipe: (id: number) =>
+    updateCategory: (recipeId: string, category: string) =>
+      update((recipes) =>
+        recipes.map((r) =>
+          r.id === recipeId ? { ...r, category } : r
+        )
+      ),
+    removeRecipe: (id: string) =>
       update((recipes) => recipes.filter((r) => r.id !== id)),
-    addIngredient: (recipeId: number, name: string) =>
+    addIngredient: (recipeId: string, name: string) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
-            ? { ...r, ingredients: [...r.ingredients, { id: newId(), name, checked: false }] }
+            ? {
+                ...r,
+                ingredients: [
+                  ...r.ingredients,
+                  { id: newId(), name, checked: false }
+                ]
+              }
             : r
         )
       ),
-    removeIngredient: (recipeId: number, ingredientId: number) =>
+    removeIngredient: (recipeId: string, ingredientId: string) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
-            ? { ...r, ingredients: r.ingredients.filter((i) => i.id !== ingredientId) }
+            ? {
+                ...r,
+                ingredients: r.ingredients.filter((i) => i.id !== ingredientId)
+              }
             : r
         )
       ),
-    toggleIngredient: (recipeId: number, ingredientId: number) =>
+    toggleIngredient: (recipeId: string, ingredientId: string) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
