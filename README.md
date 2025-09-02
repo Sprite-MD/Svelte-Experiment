@@ -2,6 +2,8 @@
 
 A simple recipe management app built with **SvelteKit** and **TailwindCSS**.  
 
+https://recipe-app-taupe-nine.vercel.app/
+
 ---
 
 ## Current Features
@@ -23,3 +25,4 @@ A simple recipe management app built with **SvelteKit** and **TailwindCSS**.
 - **Personal Notes Section** - Allow user to write personal notes or tips on the card
 - **Ingredient Sorting** - Group ingredients in other sorting methods
 - **Drag & Drop** - Reorder recipes/ingredients by dragging them around
+
