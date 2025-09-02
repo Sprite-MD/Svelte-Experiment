@@ -141,6 +141,26 @@ function createRecipes() {
             { id: newId(), name: "Cucumber", checked: false },
             { id: newId(), name: "Olive oil", checked: false }
           ]
+        },
+        {
+          id: newId(),
+          title: "Spaghetti Bolognese",
+          category: "Dinner",
+          ingredients: [
+            { id: newId(), name: "200g spaghetti", checked: false },
+            { id: newId(), name: "150g ground beef", checked: false },
+            { id: newId(), name: "1 onion", checked: false },
+            { id: newId(), name: "Tomato sauce", checked: false }
+          ]
+        },
+        {
+          id: newId(),
+          title: "Creal",
+          category: "Breakfast",
+          ingredients: [
+            { id: newId(), name: "Milk", checked: false },
+            { id: newId(), name: "Cereal", checked: false }
+          ]
         }
       ])
   };
