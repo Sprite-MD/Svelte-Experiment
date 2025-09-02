@@ -1,98 +1,50 @@
-import { writable } from 'svelte/store';
+import { writable } from "svelte/store";
+import { dev } from "$app/environment";
 
-export type Ingredient = {
-  id: string;
-  name: string;
-  checked: boolean;
-};
+export type Ingredient = { id: number; name: string; checked: boolean };
+export type Recipe = { id: number; title: string; category: string; ingredients: Ingredient[] };
 
-export type Recipe = {
-  id: string;
-  title: string;
-  category: string;
-  ingredients: Ingredient[];
-};
-
-export const CATEGORIES = [
-  "Dessert",
-  "Breakfast",
-  "Lunch",
-  "Dinner",
-  "Vegetarian"
-];
-
-const STORAGE_KEY = 'recipes';
-
-// unique ID
-const newId = () => crypto.randomUUID();
-
-// Initialize from localStorage safely
-function loadInitial(): Recipe[] {
-  if (typeof localStorage !== 'undefined') {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as Recipe[];
-      } catch (err) {
-        console.warn("⚠️ Could not parse recipes from localStorage, resetting...");
-        return [];
-      }
-    }
-  }
-  return [];
-}
+const STORAGE_KEY = "recipes";
+const newId = () => Date.now() + Math.floor(Math.random() * 1_000_000);
 
 function createRecipes() {
-  const { subscribe, set, update } = writable<Recipe[]>(loadInitial());
+  const { subscribe, set, update } = writable<Recipe[]>([]);
 
-  // Persist changes to localStorage
+  function init() {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) set(JSON.parse(stored));
+  }
+
   subscribe((recipes) => {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof window !== "undefined" && !dev) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
     }
   });
 
   return {
     subscribe,
-    addRecipe: (title: string, category: string = '') =>
-      update((recipes) => [
-        ...recipes,
-        { id: newId(), title, category, ingredients: [] }
-      ]),
-    updateCategory: (recipeId: string, category: string) =>
-      update((recipes) =>
-        recipes.map((r) =>
-          r.id === recipeId ? { ...r, category } : r
-        )
-      ),
-    removeRecipe: (id: string) =>
-      update((recipes) => recipes.filter((r) => r.id !== id)),
-    addIngredient: (recipeId: string, name: string) =>
+    init,
+    addRecipe: (title: string, category: string) =>
+      update((recipes) => [...recipes, { id: newId(), title, category, ingredients: [] }]),
+    removeRecipe: (id: number) => update((recipes) => recipes.filter((r) => r.id !== id)),
+    addIngredient: (recipeId: number, name: string) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
-            ? {
-                ...r,
-                ingredients: [
-                  ...r.ingredients,
-                  { id: newId(), name, checked: false }
-                ]
-              }
+            ? { ...r, ingredients: [...r.ingredients, { id: newId(), name, checked: false }] }
             : r
         )
       ),
-    removeIngredient: (recipeId: string, ingredientId: string) =>
+    removeIngredient: (recipeId: number, ingredientId: number) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
-            ? {
-                ...r,
-                ingredients: r.ingredients.filter((i) => i.id !== ingredientId)
-              }
+            ? { ...r, ingredients: r.ingredients.filter((i) => i.id !== ingredientId) }
             : r
         )
       ),
-    toggleIngredient: (recipeId: string, ingredientId: string) =>
+    toggleIngredient: (recipeId: number, ingredientId: number) =>
       update((recipes) =>
         recipes.map((r) =>
           r.id === recipeId
@@ -100,13 +52,16 @@ function createRecipes() {
                 ...r,
                 ingredients: r.ingredients.map((i) =>
                   i.id === ingredientId ? { ...i, checked: !i.checked } : i
-                )
+                ),
               }
             : r
         )
       ),
+    updateCategory: (recipeId: number, category: string) =>
+      update((recipes) =>
+        recipes.map((r) => (r.id === recipeId ? { ...r, category } : r))
+      ),
     clearAll: () => set([]),
-
     seedTestRecipes: () =>
       set([
         {
@@ -117,8 +72,8 @@ function createRecipes() {
             { id: newId(), name: "2 cups flour", checked: false },
             { id: newId(), name: "1.5 cups milk", checked: false },
             { id: newId(), name: "2 eggs", checked: false },
-            { id: newId(), name: "1 tbsp sugar", checked: false }
-          ]
+            { id: newId(), name: "1 tbsp sugar", checked: false },
+          ],
         },
         {
           id: newId(),
@@ -128,8 +83,8 @@ function createRecipes() {
             { id: newId(), name: "200g spaghetti", checked: false },
             { id: newId(), name: "150g ground beef", checked: false },
             { id: newId(), name: "1 onion", checked: false },
-            { id: newId(), name: "Tomato sauce", checked: false }
-          ]
+            { id: newId(), name: "Tomato sauce", checked: false },
+          ],
         },
         {
           id: newId(),
@@ -139,30 +94,10 @@ function createRecipes() {
             { id: newId(), name: "Lettuce", checked: false },
             { id: newId(), name: "Tomatoes", checked: false },
             { id: newId(), name: "Cucumber", checked: false },
-            { id: newId(), name: "Olive oil", checked: false }
-          ]
+            { id: newId(), name: "Olive oil", checked: false },
+          ],
         },
-        {
-          id: newId(),
-          title: "Spaghetti Bolognese",
-          category: "Dinner",
-          ingredients: [
-            { id: newId(), name: "200g spaghetti", checked: false },
-            { id: newId(), name: "150g ground beef", checked: false },
-            { id: newId(), name: "1 onion", checked: false },
-            { id: newId(), name: "Tomato sauce", checked: false }
-          ]
-        },
-        {
-          id: newId(),
-          title: "Creal",
-          category: "Breakfast",
-          ingredients: [
-            { id: newId(), name: "Milk", checked: false },
-            { id: newId(), name: "Cereal", checked: false }
-          ]
-        }
-      ])
+      ]),
   };
 }
 
