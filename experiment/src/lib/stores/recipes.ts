@@ -105,7 +105,44 @@ function createRecipes() {
             : r
         )
       ),
-    clearAll: () => set([])
+    clearAll: () => set([]),
+
+    seedTestRecipes: () =>
+      set([
+        {
+          id: newId(),
+          title: "Classic Pancakes",
+          category: "Breakfast",
+          ingredients: [
+            { id: newId(), name: "2 cups flour", checked: false },
+            { id: newId(), name: "1.5 cups milk", checked: false },
+            { id: newId(), name: "2 eggs", checked: false },
+            { id: newId(), name: "1 tbsp sugar", checked: false }
+          ]
+        },
+        {
+          id: newId(),
+          title: "Spaghetti Bolognese",
+          category: "Dinner",
+          ingredients: [
+            { id: newId(), name: "200g spaghetti", checked: false },
+            { id: newId(), name: "150g ground beef", checked: false },
+            { id: newId(), name: "1 onion", checked: false },
+            { id: newId(), name: "Tomato sauce", checked: false }
+          ]
+        },
+        {
+          id: newId(),
+          title: "Veggie Salad",
+          category: "Vegetarian",
+          ingredients: [
+            { id: newId(), name: "Lettuce", checked: false },
+            { id: newId(), name: "Tomatoes", checked: false },
+            { id: newId(), name: "Cucumber", checked: false },
+            { id: newId(), name: "Olive oil", checked: false }
+          ]
+        }
+      ])
   };
 }
 

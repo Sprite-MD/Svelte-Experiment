@@ -4,6 +4,16 @@
   let newRecipe = '';
   let newIngredient: Record<string, string> = {};
   let activeCategory = '';
+
+  // 
+  import { dev, browser } from "$app/environment";
+
+  if (dev && browser) {
+    // @ts-ignore
+    window.recipes = recipes;
+    console.log("🔧 Run `recipes.seedTestRecipes()` in the console to load test data");
+  }
+
 </script>
 
 <main class="max-w-6xl mx-auto mt-10 p-6 bg-gray-50 min-h-screen font-sans">
